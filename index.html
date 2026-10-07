@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Amazon Career Choice Alumni Slack</title>
+<style>
+  body { font-family: system-ui, Arial, sans-serif; text-align: center; padding: 3rem 1.25rem; color: #1d1c1d; background: #fff; }
+  a { color: #1264a3; font-weight: 600; }
+  .btn { display: inline-block; margin-top: 1rem; padding: .8rem 1.6rem; background: #1264a3; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; }
+  .hidden { display: none; }
+  .muted { color: #616061; font-size: .95rem; }
+</style>
+</head>
+<body>
+  <p id="status">Taking you to the Alumni Slack community...</p>
+  <p id="manual" class="hidden">If you are not redirected automatically, <a id="joinLink" class="btn" href="#">click here to join</a>.</p>
+  <p id="error" class="hidden">Alumni Slack access is temporarily unavailable. Please try again shortly, or contact your program team.</p>
+
+<script>
+// =====================================================================
+// ONLY EDIT THIS SECTION
+// =====================================================================
+
+var TIMEZONE = 'America/New_York';
+
+var TEST_MODE = false;
+
+var INVITE_SCHEDULE = [
+  { url: 'https://join.slack.com/t/c1-amazon-alumni/shared_invite/zt-3wxk9o7jk-Z1idMMYg~kq4esTSTFxtPg', start: '2026-10-07', end: '2026-11-17' },
+  { url: 'PASTE_SLACK_LINK_2_HERE', start: '2026-11-18', end: '2026-12-29' },
+  { url: 'PASTE_SLACK_LINK_3_HERE', start: '2026-12-30', end: '2027-02-09' },
+  { url: 'PASTE_SLACK_LINK_4_HERE', start: '2027-02-10', end: '2027-03-23' }
+];
+
+// =====================================================================
+// DO NOT EDIT BELOW THIS LINE
+// =====================================================================
+
+(function () {
+  var SLACK_RE = /^https:\/\/join\.slack\.com\/t\/[A-Za-z0-9\-]+\/shared_invite\/[A-Za-z0-9\-~]+/i;
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+  function el(id) { return document.getElementById(id); }
+  function show(id) { el(id).classList.remove('hidden'); }
+  function hide(id) { el(id).classList.add('hidden'); }
+
+  function showError() { hide('status'); hide('manual'); show('error'); }
+
+  function isRealDate(s) {
+    if (typeof s !== 'string' || !DATE_RE.test(s)) return false;
+    var p = s.split('-').map(Number);
+    var dt = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+    return dt.getUTCFullYear() === p[0] && dt.getUTCMonth() === p[1] - 1 && dt.getUTCDate() === p[2];
+  }
+
+  function todayInTz(tz) {
+    try {
+      var parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      var y = '', m = '', d = '';
+      parts.forEach(function (x) {
+        if (x.type === 'year') y = x.value;
+        if (x.type === 'month') m = x.value;
+        if (x.type === 'day') d = x.value;
+      });
+      var out = y + '-' + m + '-' + d;
+      return DATE_RE.test(out) ? out : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getToday() {
+    if (TEST_MODE) {
+      var sim = new URLSearchParams(location.search).get('date');
+      if (sim && isRealDate(sim)) return sim;
+    }
+    return todayInTz(TIMEZONE);
+  }
+
+  function scheduleIsValid() {
+    if (!Array.isArray(INVITE_SCHEDULE) || INVITE_SCHEDULE.length === 0) return false;
+    for (var i = 0; i < INVITE_SCHEDULE.length; i++) {
+      var item = INVITE_SCHEDULE[i];
+      if (!item || typeof item.url !== 'string' || !SLACK_RE.test(item.url.trim())) return false;
+      if (!isRealDate(item.start) || !isRealDate(item.end)) return false;
+      if (item.start > item.end) return false;
+    }
+    return true;
+  }
+
+  function activeFor(today) {
+    return INVITE_SCHEDULE.filter(function (i) { return i.start <= today && today <= i.end; });
+  }
+
+  function run() {
+    var today = getToday();
+    if (!today) { showError(); return; }
+    if (!scheduleIsValid()) { showError(); return; }
+
+    var active = activeFor(today);
+    if (active.length !== 1) { showError(); return; }
+
+    var url = active[0].url.trim();
+    el('joinLink').href = url;
+    show('manual');
+    window.location.replace(url);
+  }
+
+  run();
+})();
+</script>
+</body>
+</html>
